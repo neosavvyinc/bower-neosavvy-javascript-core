@@ -1,5 +1,63 @@
-/*! neosavvy-javascript-core - v0.1.0 - 2013-09-27
+/*! neosavvy-javascript-core - v0.1.0 - 2013-09-29
 * Copyright (c) 2013 Neosavvy, Inc.; Licensed  */
+var Neosavvy = Neosavvy || {};
+Neosavvy.Core = Neosavvy.Core || {};
+Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
+
+/**
+ * @class Neosavvy.Core.Builders.Collection
+ * @constructor
+ **/
+Neosavvy.Core.Builders.CollectionBuilder = function (collection) {
+    if (collection) {
+        this.operations = {};
+        this.collection = collection;
+    } else {
+        throw "You must pass in a collection as the base upon which to build!";
+    }
+};
+Neosavvy.Core.Builders.CollectionBuilder.prototype = {
+    /**
+     * Operates on the collection to nest each item down to the level of the property string specified
+     * @param {String} propertyString
+     * @returns Neosavvy.Core.Builders.Collection
+     * @method nest
+     **/
+    nest: function (propertyString) {
+        if (!_.isEmpty(propertyString)) {
+            this.operations.nest = propertyString;
+        } else {
+            throw "You must pass a valid propertyString to nest a collection.";
+        }
+        return this;
+    },
+    /**
+     * Returns the output of all the operations on the builder. If none specified, returns the base collection.
+     * @returns Array
+     * @method build
+     **/
+    build: function () {
+        if (_.keys(this.operations).length) {
+            //Nest
+            var nest = function (item, propertyString) {
+                var ar = propertyString.split(".");
+                while (ar.length) {
+                    var tempObj = {};
+                    tempObj[ar.pop()] = item;
+                    item = tempObj;
+                }
+                return item;
+            };
+            return _.map(this.collection, function (item) {
+                if (this.operations.nest) {
+                    item = nest(item, this.operations.nest);
+                }
+                return item;
+            }, this);
+        }
+        return this.collection;
+    }
+};
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
 Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
@@ -8,7 +66,7 @@ Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
  * @class Neosavvy.Core.Utils.RequestUrlBuilder
  * @constructor
  **/
-Neosavvy.Core.Builders.RequestUrlBuilder = function(baseUrl) {
+Neosavvy.Core.Builders.RequestUrlBuilder = function (baseUrl) {
     if (!baseUrl) {
         throw "You must provide a base url for every request url built.";
     }
@@ -16,66 +74,88 @@ Neosavvy.Core.Builders.RequestUrlBuilder = function(baseUrl) {
     this.replacements = {};
     this.baseUrl = baseUrl;
 };
-Neosavvy.Core.Builders.RequestUrlBuilder.prototype.addParam = function(key, value) {
-    if (typeof(key) === 'object') {
-        if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.keyValues, key)) {
-            this.keyValues = _.merge(this.keyValues, key);
-        } else {
-            throw "You have passed overlapping keys for object arguments."
-        }
-    } else if (key && value) {
-        this.keyValues = this.keyValues || {};
-        if (this.keyValues[key] === undefined) {
-            this.keyValues[key] = value;
-        } else {
-            throw "You have attempted to overwrite an existing key value in the request url.";
-        }
-    }
-    else {
-        throw "You must provide either a keyValue object, or a key value as arguments.";
-    }
-    return this;
-};
-Neosavvy.Core.Builders.RequestUrlBuilder.prototype.paramReplace = function(key, value) {
-    if (typeof(key) === 'object') {
-        if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.replacements, key)) {
-            this.replacements = _.merge(this.replacements, key);
-        } else {
-            throw "You have passed overlapping keys for object arguments."
-        }
-    } else if (key && value) {
-        this.replacements = this.replacements || {};
-        if (this.replacements[key] === undefined) {
-            this.replacements[key] = value;
-        } else {
-            throw "You have attempted to overwrite an existing key value in the request url.";
-        }
-    }
-    else {
-        throw "You must provide either a keyValue object, or a key value as arguments.";
-    }
-    return this;
-};
-Neosavvy.Core.Builders.RequestUrlBuilder.prototype.build = function() {
-    if (this.replacements) {
-        for (var key in this.replacements) {
-            this.baseUrl = this.baseUrl.replace(new RegExp(key, "g"), String(this.replacements[key]))
-        }
-    }
-    if (this.keyValues) {
-        var count = 0;
-        for (var key in this.keyValues) {
-            if (count === 0) {
-                this.baseUrl += "?";
+Neosavvy.Core.Builders.RequestUrlBuilder.prototype = {
+    /**
+     * Adds a url parameter style param (key=value) to the url being built. Pass in either a key value pair, or an object with one or many key values.
+     * @param {String|Object} key
+     * @param {String} value
+     * @returns Neosavvy.Core.Builders.RequestUrlBuilder
+     * @method addParam
+     **/
+    addParam: function (key, value) {
+        if (typeof(key) === 'object') {
+            if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.keyValues, key)) {
+                this.keyValues = _.merge(this.keyValues, key);
             } else {
-                this.baseUrl += "&";
+                throw "You have passed overlapping keys for object arguments."
             }
-            this.baseUrl += key + "=" + String(this.keyValues[key]);
-            count++;
+        } else if (key && value) {
+            this.keyValues = this.keyValues || {};
+            if (this.keyValues[key] === undefined) {
+                this.keyValues[key] = value;
+            } else {
+                throw "You have attempted to overwrite an existing key value in the request url.";
+            }
         }
+        else {
+            throw "You must provide either a keyValue object, or a key value as arguments.";
+        }
+        return this;
+    },
+    /**
+     * Replaces a key in the url with the value specified. Pass in a key value pair as separate arguments or an object with one or many key value pairs defined.
+     * @param {String|Object} key
+     * @param {String} value
+     * @returns Neosavvy.Core.Builders.RequestUrlBuilder
+     * @method paramReplace
+     **/
+    paramReplace: function (key, value) {
+        if (typeof(key) === 'object') {
+            if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.replacements, key)) {
+                this.replacements = _.merge(this.replacements, key);
+            } else {
+                throw "You have passed overlapping keys for object arguments."
+            }
+        } else if (key && value) {
+            this.replacements = this.replacements || {};
+            if (this.replacements[key] === undefined) {
+                this.replacements[key] = value;
+            } else {
+                throw "You have attempted to overwrite an existing key value in the request url.";
+            }
+        }
+        else {
+            throw "You must provide either a keyValue object, or a key value as arguments.";
+        }
+        return this;
+    },
+    /**
+     * Runs all the operations specified and generates the appropriate request url output.
+     * @returns String
+     * @method build
+     **/
+    build: function () {
+        if (this.replacements) {
+            for (var key in this.replacements) {
+                this.baseUrl = this.baseUrl.replace(new RegExp(key, "g"), String(this.replacements[key]))
+            }
+        }
+        if (this.keyValues) {
+            var count = 0;
+            for (var key in this.keyValues) {
+                if (count === 0) {
+                    this.baseUrl += "?";
+                } else {
+                    this.baseUrl += "&";
+                }
+                this.baseUrl += key + "=" + String(this.keyValues[key]);
+                count++;
+            }
+        }
+        return this.baseUrl;
     }
-    return this.baseUrl;
 };
+
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
 Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
@@ -96,9 +176,8 @@ Neosavvy.Core.Builders.StringBuilder = function (input) {
 
 Neosavvy.Core.Builders.StringBuilder.prototype = {
     /**
-     * does a thing...
-     * @param {type} name
-     * @returns type
+     * Converts any camel case in a string to dash case: myNameMike >> my-name-mike.
+     * @returns Neosavvy.Core.Builders.StringBuilder
      * @method camelToDash
      **/
     camelToDash:function () {
@@ -107,9 +186,8 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
         return this;
     },
     /**
-     * does a thing...
-     * @param {type} name
-     * @returns type
+     * Changes a standard constant syntax to standard dash syntax: MY_NAME_MIKE >> my-name-mike.
+     * @returns Neosavvy.Core.Builders.StringBuilder
      * @method constantToDash
      **/
     constantToDash:function () {
@@ -117,9 +195,8 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
         return this;
     },
     /**
-     * does a thing...
-     * @param {type} name
-     * @returns type
+     * Rusn all the operations specified for the builder.
+     * @returns String
      * @method build
      **/
     build:function () {
@@ -127,6 +204,29 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
     }
 };
 
+(function (global) {
+    "use strict";
+    global.memoize || (global.memoize = (typeof JSON === 'object' && typeof JSON.stringify === 'function' ?
+        function (func) {
+            var stringifyJson = JSON.stringify,
+                cache = {};
+
+            var cachedfun = function () {
+                var hash = stringifyJson(arguments);
+                return (hash in cache) ? cache[hash] : cache[hash] = func.apply(this, arguments);
+            };
+            cachedfun.__cache = (function(){
+                cache.remove || (cache.remove = function(){
+                    var hash = stringifyJson(arguments);
+                    return (delete cache[hash]);
+                });
+                return cache;
+            }).call(this);
+            return cachedfun;
+        } : function (func) {
+        return func;
+    }));
+}(this));
 (function (window, _) {
     if (_ && memoize) {
         window._cached = window._cached || {};
