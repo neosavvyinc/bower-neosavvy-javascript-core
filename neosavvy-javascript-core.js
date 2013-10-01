@@ -1,4 +1,4 @@
-/*! neosavvy-javascript-core - v0.0.1 - 2013-09-29
+/*! neosavvy-javascript-core - v0.0.2 - 2013-10-01
 * Copyright (c) 2013 Neosavvy, Inc.; Licensed  */
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
@@ -180,7 +180,7 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
      * @returns Neosavvy.Core.Builders.StringBuilder
      * @method camelToDash
      **/
-    camelToDash:function () {
+    camelToDash: function () {
         this.output = this.output.replace(/\W+/g, '-')
             .replace(/([a-z\d])([A-Z])/g, '$1-$2').toLowerCase();
         return this;
@@ -190,22 +190,40 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
      * @returns Neosavvy.Core.Builders.StringBuilder
      * @method constantToDash
      **/
-    constantToDash:function () {
+    constantToDash: function () {
         this.output = this.output.replace(/_/g, '-').toLowerCase();
         return this;
     },
     /**
-     * Rusn all the operations specified for the builder.
+     * Changes the string to proper case, first letters of words capitalized.
+     * @returns Neosavvy.Core.Builders.StringBuilder
+     * @method properCase
+     **/
+    properCase: function () {
+        this.output = this.output.replace(/\w\S*/g, function (txt) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        });
+        return this;
+    },
+    /**
+     * Runs all the operations specified for the builder.
      * @returns String
      * @method build
      **/
-    build:function () {
+    build: function () {
         return this.output;
     }
 };
 
 (function (global) {
     "use strict";
+    /**
+     * Memoize caches input output functions return values. Just alter the function by passing it into memoize, and you have the cached version.
+     * @method memoize
+     * @param {Function} func
+     * @returns Function
+     *
+     **/
     global.memoize || (global.memoize = (typeof JSON === 'object' && typeof JSON.stringify === 'function' ?
         function (func) {
             var stringifyJson = JSON.stringify,
@@ -227,6 +245,7 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
         return func;
     }));
 }(this));
+
 (function (window, _) {
     if (_ && memoize) {
         window._cached = window._cached || {};
@@ -269,7 +288,7 @@ Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
  * @class Neosavvy.Core.Utils.CollectionUtils
  * @static
  **/
-Neosavvy.Core.Utils.CollectionUtils = (function() {
+Neosavvy.Core.Utils.CollectionUtils = (function () {
     return {
         /**
          * does a thing...
@@ -336,19 +355,24 @@ Neosavvy.Core.Utils.CollectionUtils = (function() {
             return map;
         },
         /**
-         * does a thing...
-         * @param {type} name
-         * @returns type
+         * Returns true if two collections contain at least one match by a property value, ie a.id === b.id.
+         * @param {Array} collectionA
+         * @param {Array} collectionB
+         * @param {String} propertyName
+         * @returns Boolean
          * @method containMatchByProperty
          **/
         containMatchByProperty: function (collectionA, collectionB, propertyName) {
             if (collectionA && collectionB && collectionA.length && collectionB.length) {
                 var compare = collectionB.map(function (item) {
-                    return item[propertyName];
+                    return Neosavvy.Core.Utils.MapUtils.get(item, propertyName);
                 });
 
+                var item;
                 for (var i = 0; i < collectionA.length; i++) {
-                    if (compare.indexOf(collectionA[i][propertyName]) != -1) {
+                    item = Neosavvy.Core.Utils.MapUtils.get(collectionA[i], propertyName);
+                    if (item !== undefined &&
+                        compare.indexOf(item) !== -1) {
                         return true;
                     }
                 }
@@ -356,19 +380,23 @@ Neosavvy.Core.Utils.CollectionUtils = (function() {
             return false;
         },
         /**
-         * does a thing...
-         * @param {type} name
-         * @returns type
+         * Matches the containing of an exclusive set of items by property. Supports deep properties as well.
+         * @param {Array} collection
+         * @param {Array} otherItems
+         * @param {String} propertyName
+         * @returns Boolean
          * @method collectionContainsAllOtherItems
          **/
         collectionContainsAllOtherItems: function (collection, otherItems, propertyName) {
             if (collection && collection.length && otherItems && otherItems.length) {
                 var collectionProperties = collection.map(function (item) {
-                    return item[propertyName];
+                    return Neosavvy.Core.Utils.MapUtils.get(item, propertyName);
                 });
 
+                var item;
                 for (var i = 0; i < otherItems.length; i++) {
-                    if (collectionProperties.indexOf(otherItems[i][propertyName]) == -1) {
+                    item = typeof otherItems[i] === 'object' ? Neosavvy.Core.Utils.MapUtils.get(otherItems[i], propertyName) : undefined;
+                    if (item === undefined && collectionProperties.indexOf(item) === -1) {
                         return false;
                     }
                 }
@@ -377,9 +405,10 @@ Neosavvy.Core.Utils.CollectionUtils = (function() {
             return false;
         },
         /**
-         * does a thing...
-         * @param {type} name
-         * @returns type
+         * Returns true for an exclusive contents but not order match of collections.
+         * @param {Array} collection
+         * @param {Array} compare
+         * @returns Boolean
          * @method containsExclusively
          **/
         containsExclusively: function (collection, compare) {
@@ -399,55 +428,6 @@ Neosavvy.Core.Utils.CollectionUtils = (function() {
             return false;
         }
     };
-})();
-
-
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
-
-/**
- * @class Neosavvy.Core.Utils.DateUtils
- * @static
- **/
-Neosavvy.Core.Utils.DateUtils = (function () {
-    var DAY_IN_MILLISECONDS = (24 * 60 * 60 * 1000);
-
-    return {
-        /**
-         * returns the length of a day in milliseconds
-         * @property DAY_IN_MILLISECONDS
-         * @returns int
-         **/
-        DAY_IN_MILLISECONDS:DAY_IN_MILLISECONDS,
-
-        /**
-         * returns true if dateA and dateB are within the same day
-         * @param {DateTime} dateA
-         * @param {DateTime} dateB
-         * @returns boolean
-         * @method sameDay
-         **/
-        sameDay:function (dateA, dateB) {
-            if (dateA && dateB) {
-                if (dateA.getDay() == dateB.getDay()) {
-                    return (dateA.getTime() >= (dateB.getTime() - DAY_IN_MILLISECONDS)) && (dateA.getTime() <= (dateB.getTime() + DAY_IN_MILLISECONDS));
-                }
-            }
-            return false
-        },
-
-        /**
-         * returns the number of days from now until the passed in day
-         * @param {DateTime} days
-         * @returns integer
-         * @method daysFromNow
-         **/
-        daysFromNow:function (days) {
-            return new Date(new Date().getTime() + (days * (24 * 60 * 60 * 1000)));
-        }
-    };
-
 })();
 
 var Neosavvy = Neosavvy || {};
@@ -494,11 +474,17 @@ Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
 Neosavvy.Core.Utils.MapUtils = (function () {
     return {
         /**
-         * does a thing...
-         * @param {type} name
-         * @param {type} name
-         * @returns type
+         * returns the value in map that matches the passed in property.
+         * also supports dotted properties.
+         * @param {Obj} map
+         * @param {String} properties
+         * @returns Obj
          * @method itemByProperty
+         *
+         * @example
+            get({name: 'Bob Pollard'}, 'name') => 'Bob Pollard'
+            get({location: {state: 'OH', city: 'Dayton'}}, 'location') => { state: 'OH', city: 'Dayton' }
+            get({location: {state: 'OH', city: 'Dayton'}}, 'location.city') => 'Dayton'
          **/
         get:function (map, properties) {
             if (map && properties) {
@@ -513,6 +499,17 @@ Neosavvy.Core.Utils.MapUtils = (function () {
             }
             return map;
         },
+        /**
+         * returns true or false based on whether or not the passed
+         * in set of objects all have unique keys
+         *
+         * @example
+            keysDistinct({whoomp: 'there it is'}, {whoomp: 'here it goes'}) => false
+            keysDistinct({whoomp: 'there it is'}, {tagTeam: 'back again'}) => true
+         * @param {obj} arguments
+         * @returns Boolean
+         * @method keysDistinct
+         **/
         keysDistinct:function() {
             if (arguments.length > 1) {
                 var accumulatedLength = 0;
@@ -540,13 +537,6 @@ Neosavvy.Core.Utils.NumberUtils = (function () {
         asOrdinal:function (n) {
             var s = ["th", "st", "nd", "rd"], v = Math.abs(n) % 100;
             return n + (s[(v - 20) % 10] || s[v] || s[0]);
-        },
-        round:function (value, significantDigits) {
-            if (value !== undefined && value !== null) {
-                var str = String(Math.round(parseFloat(value) * Math.pow(10, significantDigits)));
-                return significantDigits ? str.slice(0, str.length - significantDigits) + "." + str.slice(str.length - significantDigits, str.length) : str;
-            }
-            return value;
         },
         roundUpIfFloat:function (n) {
             var absN = Math.abs(n);
@@ -623,93 +613,17 @@ Neosavvy.Core = Neosavvy.Core || {};
 Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
 
 /**
- * @class Neosavvy.Core.Utils.RequestUrlUtils
- * @static
- **/
-Neosavvy.Core.Utils.RequestUrlUtils = (function () {
-    function addParam(url, key, value) {
-        if (url && url != null && key != null && key != "" && value != null && value != "") {
-            var key_value = key.toString() + "=" + value.toString();
-
-            if (url.indexOf("?") == -1) {
-                url += "?" + key_value;
-            } else {
-                url += "&" + key_value;
-            }
-        }
-        return url;
-    }
-
-    function getKey(hash) {
-        if (hash && hash != null) {
-            var ar = Object.keys(hash);
-
-            if (ar != null && ar.length) {
-                return ar[0];
-            }
-        }
-        return null;
-    }
-
-    return {
-        addParams:function (url, key_value_pairs) {
-            if (url && url != null && key_value_pairs != null && key_value_pairs.length) {
-                for (var i = 0; i < key_value_pairs.length; i++) {
-                    var hash = key_value_pairs[i];
-                    var key = getKey(hash);
-                    url = addParam(url, key, hash[key]);
-                }
-            }
-            return url;
-        },
-
-        addParam:function (url, key, value) {
-            return addParam(url, key, value);
-        },
-
-        replaceParam:function (url, key, value) {
-            if (url != null && key != null && value != null) {
-                var url_array = url.split("?");
-                if (url_array.length == 2) {
-                    var found_param = false;
-
-                    var params = url_array[1].split("&");
-                    for (var i = 0; i < params.length; i++) {
-                        if (params[i].indexOf(key + "=") != -1) {
-                            params[i] = key.toString() + "=" + value.toString();
-                            found_param = true;
-                            break;
-                        }
-                    }
-
-                    if (found_param) {
-                        url = url_array[0] + "?";
-
-                        for (var i = 0; i < params.length; i++) {
-                            url += params[i];
-                            if (i < (params.length - 1)) {
-                                url += "&";
-                            }
-                        }
-                    }
-                }
-                return url
-            }
-            return null
-        }
-    }
-})();
-
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
-
-/**
  * @class Neosavvy.Core.Utils.SpecialUtils
  * @static
  **/
 Neosavvy.Core.Utils.SpecialUtils = (function () {
     return {
+        /**
+         * Allows the developer to functionally stack up methods that may fail and move on to the next in that case.
+         * @param {Function...} arguments
+         * @returns *
+         * @method keepTrying
+         **/
         keepTrying:function () {
             function _keepTrying() {
                 if (arguments.length) {
@@ -720,7 +634,7 @@ Neosavvy.Core.Utils.SpecialUtils = (function () {
                             return _keepTrying.apply(this, Array.prototype.slice.call(arguments, 2));
                         }
                     } else {
-                        throw "Keep trying requires an event number of arguments. Even indices are functions and odd indices are arrays or empty arrays of their arguments!";
+                        throw "Keep trying requires an even number of arguments. Even indices are functions and odd indices are arrays or empty arrays of their arguments!";
                     }
                 }
                 return null;
@@ -743,61 +657,49 @@ Neosavvy.Core.Utils.StringUtils = (function () {
     var BLANK_STRING_REGEX = /^\s*$/;
 
     return {
-        //Deals with 5 character gaps at the largest
-        htmlAttributeSafe:function (str) {
-            if (str != null) {
-                var largest_gap = "     ";
-                while (largest_gap != " ") {
-                    str = str.replace(largest_gap, " ");
-                    largest_gap = largest_gap.slice(0, largest_gap.length - 1);
-                }
-
-                return str.replace(/(_\s|\s_|\s)/g, "_").
-                    replace(/([^a-zA-Z0-9_])/g, "").
-                    toLowerCase();
+        /**
+         * Truncates a string to a specified length with optional dots (...)
+         * @param {String} str
+         * @param {Int) characterCount
+         * @param {Boolean} includeDots
+         * @returns String
+         * @method truncate
+         **/
+        truncate:function (str, characterCount, includeDots) {
+            if (includeDots == undefined) {
+                includeDots = true;
             }
-            return null;
-        },
-
-        truncate:function (str, character_count, include_dots) {
-            if (include_dots == undefined) {
-                include_dots = true;
-            }
-            if (str && str != null) {
-                if (str.length > character_count) {
-                    str = str.slice(0, character_count).trim();
-                    if (include_dots) {
+            if (str) {
+                if (characterCount && str.length > characterCount) {
+                    str = str.slice(0, characterCount).trim();
+                    if (includeDots) {
                         str += "...";
                     }
                 }
             }
             return str;
         },
-
+        /**
+         * Tests whether or not a string is blank with no contents. Also works with numbers, unlike _.isEmpty
+         * @param {String} str
+         * @returns Boolean
+         * @method isBlank
+         **/
         isBlank:function (str) {
-            return (!str || BLANK_STRING_REGEX.test(str));
+            return (str === undefined || str === null || BLANK_STRING_REGEX.test(str));
         },
-        replaceIfExistsAtIndex:function (str, character, replacement, index) {
-            if (str && character != undefined && character != null && replacement != undefined && replacement != null && index >= 0) {
-                if (str[index] == character) {
-                    return str.substr(0, index) + replacement + str.substr(index + replacement.length + 1);
-                }
-            }
-            return str;
-        },
-        properCase:function (str) {
-            if (str) {
-                return str.replace(/\w\S*/g, function (txt) {
-                    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-                });
-            }
-            return "";
-        },
+        /**
+         * Removes the occurrence of any of the followup arguments from the given string.
+         * @param {String} value
+         * @param {String} arguments
+         * @returns String
+         * @method remove
+         **/
         remove:function (value) {
             if (value && arguments.length > 1) {
                 value = String(value);
                 for (var i = 1; i < arguments.length; i++) {
-                    value = value.replace(new RegExp(arguments[i], "g"), "");
+                    value = value.replace(new RegExp(String(arguments[i]), "g"), "");
                 }
             }
             return value;
