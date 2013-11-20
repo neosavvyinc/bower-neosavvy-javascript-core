@@ -1,4 +1,4 @@
-/*! neosavvy-javascript-core - v0.0.4 - 2013-10-29
+/*! neosavvy-javascript-core - v0.0.5 - 2013-11-20
 * Copyright (c) 2013 Neosavvy, Inc.; Licensed  */
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
@@ -520,8 +520,6 @@ Neosavvy.Core.Utils.MapUtils = (function () {
                 }
                 try {
                     switch (properties.length) {
-                        case 0:
-                            return map
                         case 1:
                             return map[properties[0]];
                         case 2:
@@ -545,6 +543,60 @@ Neosavvy.Core.Utils.MapUtils = (function () {
                     }
                 } catch (e) {
                     return undefined;
+                }
+            }
+            return map;
+        },
+        /**
+         * Applies a value to the property string on the existing map object. Returns the map.
+         * @param {Obj} map
+         * @param {String} properties
+         * @param {Obj} value
+         * @returns Obj
+         * @method applyTo
+         *
+         * @example
+         applyTo({name: 'Bob Pollard'}, 'name', 'George Jones') => {name: 'George Jones'}
+         highPerformanceGet({location: {state: 'OH', city: 'Dayton'}}, 'location', { state: 'TX', city: 'Austin' }) => {location: {state: 'TX', city: 'Austin'}}
+         highPerformanceGet({location: {state: 'OH', city: 'Dayton'}}, 'location.city', 'Cleveland') => {location: {state: 'OH', city: 'Cleveland'}}
+         **/
+        applyTo: function (map, properties, value) {
+            if (map && properties) {
+                properties = properties.split(".");
+                if (properties.length > 10) {
+                    throw "You cannot pass in a string of properties greater than 10";
+                }
+                switch (properties.length) {
+                    case 1:
+                        map[properties[0]] = value;
+                        break;
+                    case 2:
+                        map[properties[0]][properties[1]] = value;
+                        break;
+                    case 3:
+                        map[properties[0]][properties[1]][properties[2]] = value;
+                        break;
+                    case 4:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]] = value;
+                        break;
+                    case 5:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]] = value;
+                        break;
+                    case 6:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]][properties[5]] = value;
+                        break;
+                    case 7:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]][properties[5]][properties[6]] = value;
+                        break;
+                    case 8:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]][properties[5]][properties[6]][properties[7]] = value;
+                        break;
+                    case 9:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]][properties[5]][properties[6]][properties[7]][properties[8]] = value;
+                        break;
+                    case 10:
+                        map[properties[0]][properties[1]][properties[2]][properties[3]][properties[4]][properties[5]][properties[6]][properties[7]][properties[8]][properties[9]] = value;
+                        break;
                 }
             }
             return map;
@@ -737,6 +789,8 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
         function URL(url, queryString) {
             if (url) {
                 this._parse(url);
+            } else {
+                throw Error("Can not create a url with undefined URL param");
             }
 
             if (queryString) {
@@ -952,7 +1006,7 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
              *            name parameter name
              */
             removeParameter : function(name) {
-                this.getQueryString().removeParameter(name);
+                this.getQueryString().remove(name);
             },
 
             /**
@@ -964,7 +1018,7 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
              *            value parameter value
              */
             setParameter : function(name, value) {
-                this.getQueryString().setParameter(name, value);
+                this.getQueryString().set(name, value);
             },
 
             /**
@@ -974,18 +1028,12 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
              *            name parameter name
              */
             getParameter : function(name) {
-                return this.getQueryString().getParameter(name);
-            },
-
-            getPathWithQueryString : function() {
-                return (this.queryString)
-                    ? this.path + '?' + this.queryString
-                    : this.path;
+                return this.getQueryString().get(name);
             },
 
             getPort : function() {
-                if (this.port !== undefined) {
-                    return this.port;
+                if (this.port !== undefined && this.port !== null) {
+                    return parseInt(this.port);
                 }
 
                 if (this.protocol === 'http') {
@@ -1011,10 +1059,6 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
         QueryString.parse = function(queryString) {
             if (!queryString) {
                 return new QueryString();
-            }
-
-            if (queryString.constructor === QueryString) {
-                return queryString;
             } else {
                 return new QueryString(queryString.toString());
             }
@@ -1076,7 +1120,7 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
              * @param {Strign} value parameter value
              */
             set : function(name, value) {
-                if (value === null) {
+                if (value === undefined || value === null) {
                     this.remove(name);
                 } else {
                     this._params[name] = value;
@@ -1122,24 +1166,6 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
                 }
 
                 return value;
-            },
-
-            /**
-             * This function is used to return a value array. If there is only one
-             * parameter with the given name then a new array is returned that
-             * contains the single item.
-             */
-            getValues : function(name) {
-                var value = this._params[name];
-                if (value === undefined) {
-                    return null;
-                }
-
-                if (value.constructor === Array) {
-                    return value;
-                } else {
-                    return [ value ];
-                }
             },
 
 
