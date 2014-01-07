@@ -1,4 +1,4 @@
-/*! neosavvy-javascript-core - v0.0.5 - 2014-01-07
+/*! neosavvy-javascript-core - v0.0.6 - 2014-01-07
 * Copyright (c) 2014 Neosavvy, Inc.; Licensed  */
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
