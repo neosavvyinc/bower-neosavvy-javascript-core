@@ -1,4 +1,4 @@
-/*! neosavvy-javascript-core - v0.0.6 - 2014-01-07
+/*! neosavvy-javascript-core - v0.0.7 - 2014-01-15
 * Copyright (c) 2014 Neosavvy, Inc.; Licensed  */
 var Neosavvy = Neosavvy || {};
 Neosavvy.Core = Neosavvy.Core || {};
@@ -304,7 +304,7 @@ Neosavvy.Core.Utils.BrowserUtils = (function () {
         } else if (browser === "opera" || browser === "opr") {
             browser = "opr";
             browserVersion = operaBrowserParts[2];
-        } else if (browser === "safari") {
+        } else if (browser === "safari" && userAgent.indexOf("phantomjs") === -1) {
             browserVersion = /(version)(?:.*version)?(?:[ \/])?([\w.]+)/.exec(userAgent)[2];
         } else {
             browserVersion = browserParts[2];
