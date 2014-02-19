@@ -308,6 +308,25 @@ Neosavvy.Core.Utils.DomUtils.getElementsByAttribute("input", "type", "submit")
 
 ```
 
+### FunctionalUtils
+
+Try to call a function, doesn't fail if the object is not there.
+
+```JavaScript
+var possiblyBlankArray = ["Terry", "Jim", "Willis"];
+
+Neosavvy.Core.Utils.FunctionalUtils.tryCall(possiblyBlankArray, 'join', [', '], 'No Names Provided');
+
+'Terry, Jim, Willis'
+
+possiblyBlankArray = null;
+
+Neosavvy.Core.Utils.FunctionalUtils.tryCall(possiblyBlankArray, 'join', [', '], 'No Names Provided');
+
+'No Names Provided'
+
+```
+
 ### MapUtils
 
 Get a property string off of a hash.
@@ -511,7 +530,7 @@ var queryString = new Neosavvy.Core.Utils.UrlUtils.QueryString("param=78&otherPa
 ```
 
 
-### 0.0.8 - 09/29/2013
+### 0.0.9 - 09/29/2013
 
 ## LICENSE
 
