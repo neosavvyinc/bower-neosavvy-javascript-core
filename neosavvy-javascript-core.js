@@ -1,14 +1,42 @@
-/*! neosavvy-javascript-core - v0.1.1 - 2014-03-07
+/*! neosavvy-javascript-core - v0.1.3 - 2014-08-06
 * Copyright (c) 2014 Neosavvy, Inc.; Licensed  */
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
+var ns = ns || {};
+
+
+/* Ensuring backward compatibility*/
 
 /**
- * @class Neosavvy.Core.Builders.Collection
+ * @class Neosavvy
+ * @static
+ **/
+var Neosavvy = ns;
+
+/**
+ * @class Neosavvy.Core
+ * @static
+ **/
+Neosavvy.Core = ns || {};
+
+/**
+ * @class Neosavvy.Core.Utils
+ * @static
+ **/
+Neosavvy.Core.Utils = ns || {};
+
+/**
+ * @class Neosavvy.Core.Builders
+ * @static
+ **/
+Neosavvy.Core.Builders = ns || {};
+
+
+var ns = ns || {};
+
+/**
+ * @class ns.Collection
  * @constructor
  **/
-Neosavvy.Core.Builders.CollectionBuilder = function (collection) {
+ns.CollectionBuilder = function (collection) {
     if (collection) {
         this.operations = {};
         this.collection = collection;
@@ -16,11 +44,12 @@ Neosavvy.Core.Builders.CollectionBuilder = function (collection) {
         throw "You must pass in a collection as the base upon which to build!";
     }
 };
-Neosavvy.Core.Builders.CollectionBuilder.prototype = {
+
+ns.CollectionBuilder.prototype = {
     /**
      * Operates on the collection to nest each item down to the level of the property string specified
      * @param {String} propertyString
-     * @returns Neosavvy.Core.Builders.Collection
+     * @returns ns.Collection
      * @method nest
      **/
     nest: function (propertyString) {
@@ -58,15 +87,13 @@ Neosavvy.Core.Builders.CollectionBuilder.prototype = {
         return this.collection;
     }
 };
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.RequestUrlBuilder
+ * @class ns.RequestUrlBuilder
  * @constructor
  **/
-Neosavvy.Core.Builders.RequestUrlBuilder = function (baseUrl) {
+ns.RequestUrlBuilder = function (baseUrl) {
     if (!baseUrl) {
         throw "You must provide a base url for every request url built.";
     }
@@ -74,22 +101,22 @@ Neosavvy.Core.Builders.RequestUrlBuilder = function (baseUrl) {
     this.replacements = {};
     this.baseUrl = baseUrl;
 };
-Neosavvy.Core.Builders.RequestUrlBuilder.prototype = {
+ns.RequestUrlBuilder.prototype = {
     /**
      * Adds a url parameter style param (key=value) to the url being built. Pass in either a key value pair, or an object with one or many key values.
      * @param {String|Object} key
      * @param {String} value
-     * @returns Neosavvy.Core.Builders.RequestUrlBuilder
+     * @returns ns.RequestUrlBuilder
      * @method addParam
      **/
     addParam: function (key, value) {
         if (typeof(key) === 'object') {
-            if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.keyValues, key)) {
+            if (ns.MapUtils.keysDistinct(this.keyValues, key)) {
                 this.keyValues = _.merge(this.keyValues, key);
             } else {
                 throw "You have passed overlapping keys for object arguments."
             }
-        } else if (key && value) {
+        } else if (key && (value || value === 0)) {
             this.keyValues = this.keyValues || {};
             if (this.keyValues[key] === undefined) {
                 this.keyValues[key] = value;
@@ -106,12 +133,12 @@ Neosavvy.Core.Builders.RequestUrlBuilder.prototype = {
      * Replaces a key in the url with the value specified. Pass in a key value pair as separate arguments or an object with one or many key value pairs defined.
      * @param {String|Object} key
      * @param {String} value
-     * @returns Neosavvy.Core.Builders.RequestUrlBuilder
+     * @returns ns.RequestUrlBuilder
      * @method paramReplace
      **/
     paramReplace: function (key, value) {
         if (typeof(key) === 'object') {
-            if (Neosavvy.Core.Utils.MapUtils.keysDistinct(this.replacements, key)) {
+            if (ns.MapUtils.keysDistinct(this.replacements, key)) {
                 this.replacements = _.merge(this.replacements, key);
             } else {
                 throw "You have passed overlapping keys for object arguments."
@@ -156,15 +183,14 @@ Neosavvy.Core.Builders.RequestUrlBuilder.prototype = {
     }
 };
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
+var ns = ns || {};
+
 
 /**
- * @class Neosavvy.Core.Builders.StringBuilder
+ * @class ns.StringBuilder
  * @constructor
  **/
-Neosavvy.Core.Builders.StringBuilder = function (input) {
+ns.StringBuilder = function (input) {
     //Nothing defined here yet
     if (input) {
         this.input = input;
@@ -174,10 +200,10 @@ Neosavvy.Core.Builders.StringBuilder = function (input) {
     }
 };
 
-Neosavvy.Core.Builders.StringBuilder.prototype = {
+ns.StringBuilder.prototype = {
     /**
      * Converts any camel case in a string to dash case: myNameMike >> my-name-mike.
-     * @returns Neosavvy.Core.Builders.StringBuilder
+     * @returns ns.StringBuilder
      * @method camelToDash
      **/
     camelToDash: function () {
@@ -187,7 +213,7 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
     },
     /**
      * Changes a standard constant syntax to standard dash syntax: MY_NAME_MIKE >> my-name-mike.
-     * @returns Neosavvy.Core.Builders.StringBuilder
+     * @returns ns.StringBuilder
      * @method constantToDash
      **/
     constantToDash: function () {
@@ -196,7 +222,7 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
     },
     /**
      * Changes the string to proper case, first letters of words capitalized.
-     * @returns Neosavvy.Core.Builders.StringBuilder
+     * @returns ns.StringBuilder
      * @method properCase
      **/
     properCase: function () {
@@ -258,34 +284,9 @@ Neosavvy.Core.Builders.StringBuilder.prototype = {
         throw "Either Lodash or global memoize has not been loaded within this application. Please load these files before cached-lodash.js";
     }
 })(window, window._);
-var Neosavvy = Neosavvy || {};
+var ns = ns || {};
 
-/**
- * @class Neosavvy.Core
- * @static
- **/
-Neosavvy.Core = Neosavvy.Core || {};
-
-/**
- * @class Neosavvy.Core.Utils
- * @static
- **/
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
-
-/**
- * @class Neosavvy.Core.Builders
- * @static
- **/
-Neosavvy.Core.Builders = Neosavvy.Core.Builders || {};
-
-
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-/**
- * @class Neosavvy.Core.Utils.BrowserUtils
- * @static
- **/
-Neosavvy.Core.Utils.BrowserUtils = (function () {
+var BrowserUtils = (function(ns){
     var browser, browserVersion, os, osVersion;
 
     function _load(userAgent) {
@@ -430,20 +431,18 @@ Neosavvy.Core.Utils.BrowserUtils = (function () {
         def['reload'] = _load;
     }
 
-    return def;
-})();
+    return _.merge(ns,def);
+})(ns);
 
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
-
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+//For backward compatibility
+ns.BrowserUtils = BrowserUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.CollectionUtils
+ * @class CollectionUtils
  * @static
  **/
-Neosavvy.Core.Utils.CollectionUtils = (function () {
+var CollectionUtils = (function () {
     return {
         /**
          * does a thing...
@@ -454,7 +453,7 @@ Neosavvy.Core.Utils.CollectionUtils = (function () {
         itemByProperty: function (collection, property, value) {
             if (collection && collection.length && value) {
                 for (var i = 0; i < collection.length; i++) {
-                    var found = Neosavvy.Core.Utils.MapUtils.get(collection[i], property);
+                    var found = ns.MapUtils.get(collection[i], property);
                     if (found === value) {
                         return collection[i];
                     }
@@ -504,7 +503,7 @@ Neosavvy.Core.Utils.CollectionUtils = (function () {
             var map = {};
             if (collection && collection.length) {
                 for (var i = 0; i < collection.length; i++) {
-                    map[String(Neosavvy.Core.Utils.MapUtils.get(collection[i], properties))] = collection[i];
+                    map[String(ns.MapUtils.get(collection[i], properties))] = collection[i];
                 }
             }
             return map;
@@ -520,12 +519,12 @@ Neosavvy.Core.Utils.CollectionUtils = (function () {
         containMatchByProperty: function (collectionA, collectionB, propertyName) {
             if (collectionA && collectionB && collectionA.length && collectionB.length) {
                 var compare = collectionB.map(function (item) {
-                    return Neosavvy.Core.Utils.MapUtils.get(item, propertyName);
+                    return ns.MapUtils.get(item, propertyName);
                 });
 
                 var item;
                 for (var i = 0; i < collectionA.length; i++) {
-                    item = Neosavvy.Core.Utils.MapUtils.get(collectionA[i], propertyName);
+                    item = ns.MapUtils.get(collectionA[i], propertyName);
                     if (item !== undefined &&
                         compare.indexOf(item) !== -1) {
                         return true;
@@ -545,12 +544,12 @@ Neosavvy.Core.Utils.CollectionUtils = (function () {
         collectionContainsAllOtherItems: function (collection, otherItems, propertyName) {
             if (collection && collection.length && otherItems && otherItems.length) {
                 var collectionProperties = collection.map(function (item) {
-                    return Neosavvy.Core.Utils.MapUtils.get(item, propertyName);
+                    return ns.MapUtils.get(item, propertyName);
                 });
 
                 var item;
                 for (var i = 0; i < otherItems.length; i++) {
-                    item = typeof otherItems[i] === 'object' ? Neosavvy.Core.Utils.MapUtils.get(otherItems[i], propertyName) : undefined;
+                    item = typeof otherItems[i] === 'object' ? ns.MapUtils.get(otherItems[i], propertyName) : undefined;
                     if (item === undefined && collectionProperties.indexOf(item) === -1) {
                         return false;
                     }
@@ -585,15 +584,17 @@ Neosavvy.Core.Utils.CollectionUtils = (function () {
     };
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns,CollectionUtils);
+
+//For backward compatibility
+ns.CollectionUtils = CollectionUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.DomUtils
+ * @class DomUtils
  * @static
  **/
-Neosavvy.Core.Utils.DomUtils = (function () {
+var DomUtils = (function () {
     return {
         /**
          * returns an array of DOM elements that contain the passed
@@ -618,15 +619,17 @@ Neosavvy.Core.Utils.DomUtils = (function () {
     };
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns, DomUtils);
+
+//For backward compatibility
+ns.DomUtils = DomUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.SpecialUtils
+ * @class FunctionalUtils
  * @static
  **/
-Neosavvy.Core.Utils.FunctionalUtils = (function () {
+var FunctionalUtils = (function () {
     return {
         /**
          * Allows the developer to functionally stack up methods that may fail and move on to the next in that case.
@@ -635,7 +638,7 @@ Neosavvy.Core.Utils.FunctionalUtils = (function () {
          * @method keepTrying
          **/
         tryCall:function (obj, fnName, args, elseCase) {
-            var fn = Neosavvy.Core.Utils.MapUtils.highPerformanceGet(obj, fnName);
+            var fn = ns.MapUtils.highPerformanceGet(obj, fnName);
             if (typeof fn == 'function') {
                 return fn.apply(obj, args);
             }
@@ -644,15 +647,18 @@ Neosavvy.Core.Utils.FunctionalUtils = (function () {
     }
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns, FunctionalUtils);
+
+//For backward compatibility
+ns.FunctionalUtils = FunctionalUtils;
+
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.MapUtils
+ * @class MapUtils
  * @static
  **/
-Neosavvy.Core.Utils.MapUtils = (function () {
+var MapUtils = (function () {
     return {
         /**
          * returns the value in map that matches the passed in property.
@@ -806,15 +812,18 @@ Neosavvy.Core.Utils.MapUtils = (function () {
     }
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns,MapUtils);
+
+//For backward compatibility
+ns.MapUtils = MapUtils;
+
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.NumberUtils
+ * @class NumberUtils
  * @static
  **/
-Neosavvy.Core.Utils.NumberUtils = (function () {
+var NumberUtils = (function () {
 
     return {
         asOrdinal:function (n) {
@@ -856,15 +865,17 @@ Neosavvy.Core.Utils.NumberUtils = (function () {
 
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns, NumberUtils);
+
+//For backward compatibility
+ns.NumberUtils = NumberUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.RegexUtils
+ * @class RegexUtils
  * @static
  **/
-Neosavvy.Core.Utils.RegexUtils = (function () {
+var RegexUtils = (function () {
     var EMAIL_REGEX = /^\s*[\w\-\+_]+(\.[\w\-\+_]+)*\@[\w\-\+_]+\.[\w\-\+_]+(\.[\w\-\+_]+)*\s*$/;
     return {
         matchStringAndLeadup: function(str) {
@@ -891,15 +902,17 @@ Neosavvy.Core.Utils.RegexUtils = (function () {
     };
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns, RegexUtils);
+
+//For backward compatibility
+ns.RegexUtils = RegexUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.SpecialUtils
+ * @class SpecialUtils
  * @static
  **/
-Neosavvy.Core.Utils.SpecialUtils = (function () {
+var SpecialUtils = (function () {
     return {
         /**
          * Allows the developer to functionally stack up methods that may fail and move on to the next in that case.
@@ -928,15 +941,17 @@ Neosavvy.Core.Utils.SpecialUtils = (function () {
     }
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns, SpecialUtils);
+
+//For backward compatibility
+ns.SpecialUtils = SpecialUtils;
+var ns = ns || {};
 
 /**
- * @class Neosavvy.Core.Utils.StringUtils
+ * @class StringUtils
  * @static
  **/
-Neosavvy.Core.Utils.StringUtils = (function () {
+var StringUtils = (function () {
     var BLANK_STRING_REGEX = /^\s*$/;
 
     return {
@@ -954,18 +969,20 @@ Neosavvy.Core.Utils.StringUtils = (function () {
     }
 })();
 
-var Neosavvy = Neosavvy || {};
-Neosavvy.Core = Neosavvy.Core || {};
-Neosavvy.Core.Utils = Neosavvy.Core.Utils || {};
+_.merge(ns,StringUtils);
+
+//For backward compatibility
+ns.StringUtils = StringUtils;
+var ns = ns || {};
 
 /**
  * Thanks to philidem on github for this great starting point.
  * https://github.com/philidem/url-util-js/blob/master/test/url-util-spec.js
  *
- * @class Neosavvy.Core.Utils.UrlUtils
+ * @class UrlUtils
  * @static
  **/
-Neosavvy.Core.Utils.UrlUtils = (function () {
+var UrlUtils = (function () {
 
         function URL(url, queryString) {
             if (url) {
@@ -1387,3 +1404,8 @@ Neosavvy.Core.Utils.UrlUtils = (function () {
             }
         }
 })();
+
+_.merge(ns, UrlUtils);
+
+//For backward compatibility
+ns.UrlUtils = UrlUtils;
